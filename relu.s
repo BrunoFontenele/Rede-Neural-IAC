@@ -66,7 +66,4 @@ loop_end:
 exit_with_error:
   li a0, 36
   li a7, 93            # Exit system call
-  ecall                # Terminate program
-  li a0, 36
-  li a7, 93            # Exit system call
   ecall                # Terminate program
