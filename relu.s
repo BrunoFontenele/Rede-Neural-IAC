@@ -29,19 +29,22 @@ exit:
 # ============================================================
 relu:
     # Verificar se o tamanho do vetor é válido
-    li x6, 1              # load immediate o valor 1 em x6
+    add x28, x0, x0            # load immediate o valor 1 em x6
     blt a1, x6, exit_with_error  # Se a1 < 1,erro
 
-# TO DO
-
-
-
-
-
-
-
-
-
+# TO Do
+start:  
+    lw x7, 0(a0)
+    beq a1, x6, loop_end
+    bgt x7, x0, end
+    sw zero, 0(a0)
+    
+end:
+    addi x6, x6, 1
+    addi a0, a0, 4
+    j start
+    
+    
 loop_end:
   jr ra                  # normal return
 
