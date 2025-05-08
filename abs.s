@@ -32,7 +32,7 @@ exit:
 
 abs:
   lw t0, 0(a0)         # Load int value
-  bgt t0, zero, done   # If value >= 0, skip negation
+  bge t0, zero, done   # If value >= 0, skip negation
   sub t0, x0, t0       # t0 = -t0
   sw t0, 0(a0)         # Store back to memory
 
