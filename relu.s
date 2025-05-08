@@ -2,7 +2,7 @@
 
 # You can change this array to test other values
 
-array: .word -3, 2, -1, 7, -2 # Initial array values
+array: .word -3, 0, -1, 7, -2 # Initial array values
 
 .text
 
@@ -20,7 +20,6 @@ jal ra, relu # Call relu function
 exit:
 
 li a7, 10 # Exit syscall code
-
 ecall # Terminate the program
 
 
@@ -35,24 +34,23 @@ ecall # Terminate the program
 #     this function terminates the program with error code 36
 # ============================================================
 relu:
+    
+# x6 - index counter
+# x7 - word in vector
 
-# Verificar se o tamanho do vetor é válido
+blez a1, exit_with_error #verifying vector size
 
-add x6, x0, x0 # load immediate o valor 1 em t0
-blt a1, x6, exit_with_error # Se a1 < 1,erro
-
-# TO DO
+li x6, 0 # initiliaze counter
 
 start:
-lw x7, 0(a0)
-
-    bgt x7, x0, end
-    sw zero, 0(a0)
+    lw x7, 0(a0) #read word in vector
+    bgtz x7, end #verifying if word is positive
+    sw zero, 0(a0) #storing zero instead of word
     
 end:
-    addi x6, x6, 1
-    beq a1, x6, loop_end
-    addi a0, a0, 4
+    addi x6, x6, 1 #going to the next index
+     beq a1, x6, loop_end #if index counter reaches vector length
+    addi a0, a0, 4 #going to the next vector position
     j start    
     
 loop_end:
@@ -64,9 +62,6 @@ loop_end:
 # a0 (int) is the error code 
 # You need to load a0 the error to a0 before to jump here
 exit_with_error:
-  li a0, 36
+  li a0, 36 #error 36
   li a7, 93            # Exit system call
   ecall                # Terminate program
-  li a0, 36
-  li a7, 93            # Exit system call
-  ecall                # Terminate program
