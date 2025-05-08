@@ -2,7 +2,7 @@
 
 # You can change this array to test other values
 
-array: .word -3, 2, -1, 7, -2 # Initial array values
+array: .word -3, 0, -1, 7, -2 # Initial array values
 
 .text
 
@@ -20,7 +20,6 @@ jal ra, relu # Call relu function
 exit:
 
 li a7, 10 # Exit syscall code
-
 ecall # Terminate the program
 
 
@@ -38,20 +37,22 @@ relu:
 
 # Verificar se o tamanho do vetor é válido
 
-add x6, x0, x0 # load immediate o valor 1 em t0
+addi x6, x0, 1 # load immediate o valor 1 em t0
 blt a1, x6, exit_with_error # Se a1 < 1,erro
+
+addi x6, x6, -1 
 
 # TO DO
 
 start:
-lw x7, 0(a0)
+    lw x7, 0(a0) 
 
     bgt x7, x0, end
     sw zero, 0(a0)
     
 end:
     addi x6, x6, 1
-    beq a1, x6, loop_end
+     beq a1, x6, loop_end
     addi a0, a0, 4
     j start    
     
@@ -67,6 +68,3 @@ exit_with_error:
   li a0, 36
   li a7, 93            # Exit system call
   ecall                # Terminate program
-  li a0, 36
-  li a7, 93            # Exit system call
-  ecall                # Terminate program
