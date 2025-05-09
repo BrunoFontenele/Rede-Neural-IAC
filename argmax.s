@@ -46,19 +46,19 @@ li x6, 1 #initializing index counter
 
 addi a0, a0, 4 #going to the second element
 #if the element is less than the greatest
-start:
+loop_start:
     lw x7, 0(a0) 
-    bge x8, x7, end 
+    bge x8, x7, loop_end 
     add x8, x0, x7 #changing the greatest element
     add x9, x0, x6 #changing the greatest element index
     
-end:
-    addi x6, x6, 1 #going to the next element index
-    beq x6, a1, loop_end #if the end of the vector has been reached
-    addi a0, a0, 4 #going to the next element
-    j start
-
 loop_end:
+    addi x6, x6, 1 #going to the next element index
+    beq x6, a1, end #if the end of the vector has been reached
+    addi a0, a0, 4 #going to the next element
+    j loop_start
+
+end:
     add a0, x0, x9 #storing the greatest element in a0
     jr ra                        # Return to the caller
 
