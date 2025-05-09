@@ -42,18 +42,18 @@ blez a1, exit_with_error #verifying vector size
 
 li x6, 0 # initiliaze counter
 
-start:
+loop_start:
     lw x7, 0(a0) #read word in vector
-    bgtz x7, end #verifying if word is positive
+    bgtz x7, loop_end #verifying if word is positive
     sw zero, 0(a0) #storing zero instead of word
     
-end:
-    addi x6, x6, 1 #going to the next index
-     beq a1, x6, loop_end #if index counter reaches vector length
-    addi a0, a0, 4 #going to the next vector position
-    j start    
-    
 loop_end:
+    addi x6, x6, 1 #going to the next index
+    beq a1, x6, end #if index counter reaches vector length
+    addi a0, a0, 4 #going to the next vector position
+    j loop_start    
+    
+end:
   jr ra                  # normal return
 
 
@@ -62,6 +62,6 @@ loop_end:
 # a0 (int) is the error code 
 # You need to load a0 the error to a0 before to jump here
 exit_with_error:
-  li a0, 36 #error 36
+  li a0, 36 #loading error 36
   li a7, 93            # Exit system call
   ecall                # Terminate program
