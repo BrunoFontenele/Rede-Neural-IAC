@@ -38,7 +38,7 @@ exit:
 # t5 - contador
 
 dotproduct:
-    blez a2, exit_with_error38
+    blez a2, exit_with_error_38
     mv t0, a1
     mv t1, x0
     mv t2, x0
