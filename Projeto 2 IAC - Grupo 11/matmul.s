@@ -71,7 +71,7 @@ dotproduct:
         mv a0, t3
         jr ra
         
-    exit_with_error38:
+    exit_with_error_38:
       li a0, 38
       li a7, 93            # Exit system call
       ecall                # Terminate program
