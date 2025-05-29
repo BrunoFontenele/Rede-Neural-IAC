@@ -16,7 +16,7 @@
 #
 # 1. Nao usar o stack no matmul
 #
-# 2.
+# 2. usar xor ao colocar uma variavel a 0
 #
 # 3.
 #
@@ -57,9 +57,11 @@ path_m0: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m0.bin"
 # ===========================================================
 # Here you can define any additional data structures that your program might need
 
-image_byte:    .zero 796
-m0_byte:    .zero 100352  
+input_byte_zero:    .zero 796 # 28*28+12
+m0_byte_zero:    .zero 100352 # m0w*m0h/4
+m1_byte_zero:    .zero 1280 
 .equ m0_byte_size 100352
+.equ m1_byte_size 1280
 .equ input_byte_size 796
 
 # ===========================================================
@@ -413,40 +415,66 @@ classify:
     sw ra,0(sp)
     #sw #guardar todos 
     la a0, path_m0
-    la a1, m0_byte
-    li a2,m0_byte_size
+    la a1, m0_byte_zero
+    li a2, m0_byte_size
     jal read_file
     
-    la a0,m0_byte
+    la a0,m0_byte_zero
     la a1,m0
     la a2,m0_byte_size
     li a3, 0 #12
-    li a4,1 #0
+    li a4, 1 #0
     jal cast_array_to_int
+    
+    la a0, path_m1
+    la a1, m1_byte_zero
+    li a2, m1_byte_size
+    jal read_file
+    la a0,m1_byte_zero
+    la a1,m1
+    la a2,m1_byte_size
+    li a3, 0 #12
+    li a4, 1 #0
+    jal cast_array_to_int
+    
+    la a0,input_byte_zero
+    la a1,input
+    la a2,input_byte_size
+    li a3, 1
+    li a4, 0
+    jal cast_array_to_int #MUDAR NOME DA FUNCAO POR FAVOR. IMPLORO
     
     j exit
 
-    
-    
-    
+#a0 - memoria do m0
+#a1 - address do m0
+#a2 - limite final
+#a3 - 0 (muda entre as matrizes e a imagem)
+#a4 - 1 (muda entre entre)
+#t1 - contador
+#t3 - 
+#t4 - step
 cast_array_to_int:
-     li t1,0 
-     add a0,a0,a3 
+     li t1,0 #t1 = 0
+     mv a3, a0 # colocamos a3 
      
 loop_cast:
-     add t3,t1,a0 
-     lb t0, 0(t3) 
+    #lendo o byte
+     add t3,t1,a0 #colocamos no t3 o endereço do m0_zero + t1
+     lb t0, 0(t3) #lemos o primeiro elemento do t3 e guardamos no t0
      
-     slli t4,t1,2
-     add t3,t4,a1 
+     #step
+     slli t4,t1,2 #multiplicar t1 por 4 e guardar no t4
+     add t3,t4,a1 #somar t4 ao endereço do m0 e guardar no t3
      
-     ble a4,x0,skip_process
-     addi t0,t0,-32
+     #se for matriz continua, se nao salta
+     ble a4,x0,skip_process #verificamos se a4 é menor que 0
+     addi t0,t0,-32 #foi somado 32 anteriormente
 skip_process:
-     sw t0,0(t3) 
+     sw t0,0(t3) #guardamos o t0 no t3 #guardando o valor corrigido
      
-     addi t1,t1,1 
-     blt t1,a2, loop_cast
+     addi t1,t1,1 #aumentar o contador
+     blt t1,a2, loop_cast #se chegarmos no fim
      
      jr ra
 
@@ -471,4 +499,5 @@ exit:
 exit_with_error:
   li a7, 93            # Exit system call
   ecall                # Terminate program
+
 
