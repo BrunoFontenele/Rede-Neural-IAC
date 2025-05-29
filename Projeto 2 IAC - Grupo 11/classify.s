@@ -1,21 +1,20 @@
 # ===========================================================
-# Identificacao do grupo:  [T?? para Tagus ou A?? para Alameda]
+# Identificacao do grupo: T11
 #
 # Membros [istID, primeiro + ultimo nome]
-# 1.
-# 2. 
-# 3. 
+# 1. Beatriz Alves
+# 2. Beatriz Medvedyuk
+# 3. Bruno Fontenele
 #
 # ===========================================================
 # Requisitos do enunciado que *nao* estao corretamente implementados:
 # (indicar um por linha, ou responder "nenhum")
-# -
-#
+# - Nenhum
 # ===========================================================
 # Top-5 das otimizacoes que a vossa solucao incorpora:
 # (maximo 140 caracteres por cada otimizacao)
 #
-# 1.
+# 1. Nao usar o stack no matmul
 #
 # 2.
 #
@@ -85,13 +84,15 @@ main:
 #   Nothing (modifies value in memory)
 # ===========================================================
 
-    #
-    # TO DO: copy from your previous solution in another file
-    #
+abs:
+  lw t0, 0(a0)         # Load int value
+  bge t0, zero, done_abs   # If value >= 0, skip negation
+  sub t0, x0, t0       # t0 = -t0
+  sw t0, 0(a0)         # Store back to memory
+
+done_abs:
+  jr ra # Return to the caller
     
-    jr ra                    # Return to the caller
-
-
 
 # ============================================================
 # FUNCTION: relu
@@ -105,12 +106,30 @@ main:
 # ============================================================
 relu:
 
-    #
-    # TO DO: copy from your previous solution in another file
-    #
-    
-    jr ra                    # Return to the caller
+# x6 - index counter
+# x7 - word in vector
 
+blez a1, exit_with_error_36 #verifying vector size
+
+li x6, 0 # initiliaze counter
+
+loop_start_relu:
+    lw x7, 0(a0) #read word in vector
+    bgtz x7, loop_end_relu #verifying if word is positive
+    sw zero, 0(a0) #storing zero instead of word
+    
+loop_end_relu:
+    addi x6, x6, 1 #going to the next index
+    beq a1, x6, end_relu #if index counter reaches vector length
+    addi a0, a0, 4 #going to the next vector position
+    j loop_start_relu    
+    
+end_relu:
+  jr ra # normal return
+  
+exit_with_error_36:
+ li a0, 36 #loading error 36
+ j exit_with_error
 
 
 # =================================================================
@@ -127,15 +146,40 @@ relu:
 #     this function terminates the program with error code 37
 # =================================================================
 argmax:
-
-    #
-    # TO DO: copy from your previous solution in another file
-    #
     
-    jr ra                    # Return to the caller
+# x6 - index counter
+# x7 - word in index
+# x8 - greatest element
+# x9 - greatest element index
 
+blez a1, exit_with_error_argmax #if vector length is invalid
 
+lw x7, 0(a0) #reading word in the first index
+add x8, x0, x7 #keeping the greatest element
+li x9, 0 #keeping the greatest element index
+li x6, 1 #initializing index counter
 
+addi a0, a0, 4 #going to the second element
+#if the element is less than the greatest
+loop_start_argmax:
+    lw x7, 0(a0) 
+    bge x8, x7, loop_end_argmax
+    add x8, x0, x7 #changing the greatest element
+    add x9, x0, x6 #changing the greatest element index
+    
+loop_end_argmax:
+    addi x6, x6, 1 #going to the next element index
+    beq x6, a1, end_argmax #if the end of the vector has been reached
+    addi a0, a0, 4 #going to the next element
+    j loop_start_argmax
+
+end_argmax:
+    add a0, x0, x9 #storing the greatest element in a0
+    jr ra # Return to the caller
+
+exit_with_error_argmax:
+    li a0, 37 #invalid vector size error
+    j exit_with_error
 
 # =======================================================
 # FUNCTION: Dot product of 2 int arrays
@@ -143,19 +187,57 @@ argmax:
 #   a0 (int*) - Pointer to the start of arr0
 #   a1 (int*) - Pointer to the start of arr1
 #   a2 (int)  - Number of elements to use   
+#   a3 (int)  - Step of the second vector (optional)
 # Returns:
 #   a0 (int)  - The dot product of arr0 and arr1
 # Exceptions:
 #   - If a2 < 1, exit with error code 38
 # =======================================================
 dotproduct:
+    # t0 - ponteiro matriz 2
+    # t1 - elemento da matriz 1
+    # t2 - elemento da matriz 2
+    # t3 - soma
+    # t4 - step
+    # t5 - contador
 
-    #
-    # TO DO: copy from your previous solution in another file
-    #
+    blez a2, exit_with_error_38
+    mv t0, a1
+    mv t1, x0
+    mv t2, x0
+    mv t3, x0
+    slli t4, a3, 2 #convertendo em bytes
+    mv t5, x0 #preparando contador
+    bne a3, x0, jump_loop_dotprod #se o step não for 0, iremos ver
+    #os elementos da coluna
+    normal_loop_dotprod:
+        beq t5, a2, end_dotprod #chegamos no fim do vetor
+        lw t1, 0(a0)
+        lw t2, 0(t0)
+        mul t1, t1, t2
+        add t3, t3, t1
+        addi t5, t5, 1 #aumentando contador
+        addi a0, a0, 4 #andando no vetor 1
+        addi t0, t0, 4 #andando no vetor 2
+        j normal_loop_dotprod
+     jump_loop_dotprod:
+        beq t5, a2, end_dotprod #chegamos no fim do vetor
+        lw t1, 0(a0)
+        lw t2, 0(t0)
+        mul t1, t1, t2
+        add t3, t3, t1
+        addi t5, t5, 1 #aumentando contador
+        addi a0, a0, 4 #andando no vetor 1
+        add t0, t0, t4 #deslocando no vetor 2
+        j jump_loop_dotprod
+    end_dotprod:
+        mv a0, t3
+        jr ra
+        
+exit_with_error_38:
+  li a0, 38
+  j exit_with_error
     
-    jr ra                    # Return to the caller
-
 
 # =======================================================
 # FUNCTION: Matrix Multiplication of 2 integer matrices
@@ -180,12 +262,67 @@ dotproduct:
 #    of rows in matrix B, it terminates with error code 40
 # =======================================================
 matmul:
+  
 
-    #
-    # TO DO: copy from your previous solution in another file
-    #
+# s0 - ponteiro para matriz 1
+# s1 - ponteiro para matriz 2 (se move)
+# s2 - ponteiro para matriz 2 (estatico)
+# s3 - contador interno
+# s4 - contador externo
+# s5 - deslocamento (step)
+
+    blez a2, exit_with_error_39
+    blez a3, exit_with_error_39
+    blez a4, exit_with_error_39    
+    blez a5, exit_with_error_39
+    bne a3, a4, exit_with_error_40
     
-    jr ra                    # Return to the caller
+    addi sp, sp, -8
+    sw ra, 0(sp)
+    sw a2, 4(sp)
+    mv s0, a0 #guardando matriz 1
+    mv s1, a1 #guardando matriz 2
+    mv s2, a1 #guardando matriz 2 (estatico)
+    mv s3, x0 #preparando contador interno
+    mv s4, x0 #preparando contador externo
+    slli s5, a3, 2 #preparando step
+
+    
+    loop_mat:
+        mv a0, s0 #reiniciando a0
+        mv a1, s1 #reiniciando a1
+        add a3, a5, x0 #guardando step do dotproduct
+        add a2, a4, x0
+        jal dotproduct
+        sw a0, 0(a6) #guardando resultado na matriz final
+        addi s3, s3, 1 #aumentando contador interno
+        addi s1, s1, 4 #saltando para a proxima coluna da segunda
+        beq s3, a5, loop_end #atingimos o fim da segunda matriz
+        addi a6, a6, 4 #indo para o proximo elemento do resultado
+        j loop_mat
+        
+    loop_end:
+        mv s3, x0 #reiniciando contador interno
+        mv s1, s2 #reiniciando segunda matriz
+        add s0, s0, s5 #indo para a proxima linha da matriz 1
+        addi s4, s4, 1 #aumentando contador externo
+        lw a2, 4(sp)
+        beq s4, a2, end_mat #chegamos na ultima linha da primeira matriz
+        addi a6, a6, 4 #indo para o proximo elemento do resultado
+        j loop_mat
+        
+    end_mat:
+        lw ra, 0(sp)
+        addi sp, sp, 8
+        jr ra
+        
+exit_with_error_39:
+  li a0, 39
+  j exit_with_error
+
+exit_with_error_40:
+  li a0, 40
+  j exit_with_error
 
 
 ######################################################################
@@ -203,9 +340,43 @@ matmul:
 
 read_file:
     
-    #
-    # TO DO: copy from your previous solution in another file
-    #
+    li t0, 1
+    blt a2, t0, exit_with_error_42    # Número de bytes passados menor que 1
+
+    mv t1, a1    # Guarda buffer pointer
+    mv t2, a2    # Guarda lenght
+
+    li a1 0       # Flag read only
+    li a7 1024    # Open (muda a0 para file descriptor)
+    ecall
+
+    blt a0, zero, exit_with_error_41    # Open devolve erro se file descriptor < 0
+    mv t0, a0    # Guarda file descriptor
+    mv a1, t1    # Repor ponteiro buffer
+    mv a2, t2    # Repor lenght
+
+    li a7, 63    # Read ficheiro (muda a0 para numero de bytes)
+    ecall
+
+    blt a0, zero, exit_with_error_41    # Read devolve erro se byte lidos < 0
+
+    mv t3, a0    # Salva número de bytes lidos
+    mv a0, t0    # Move file descriptor de novo para a0
+
+    li a7, 57    # Close ficheiro
+    ecall
+
+    mv a0, t3    # Coloca número de bytes lidos em a0
+    jr ra
+
+
+exit_with_error_42:
+    li a0, 42                    # Erro 42
+    j exit_with_error                      # Terminate programm
+
+exit_with_error_41:
+    li a0, 41                    # Erro 41
+    j exit_with_error          # Terminate programm
     
     jr ra                    # Return to the caller
 
@@ -228,11 +399,7 @@ read_file:
 
 classify:
 
-    #
-    # TO DO
-    #
-    
-    jr ra                    # Return to the caller
+
 
 
 
@@ -245,6 +412,7 @@ classify:
 exit:
     li a7, 10     # Exit syscall code
     ecall         # Terminate the program
+
 
 # Exits the program with an error 
 # Arguments: 
