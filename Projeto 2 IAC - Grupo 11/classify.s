@@ -51,18 +51,23 @@ h_o: .word 10
 w_o: .word 1
 o: .zero 40                     #h_o * w_o * 4 bytes
 
+filename: .string "/home/bruno/Downloads/classifier-files/input-images/output0.pgm"
+path_m0: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m0.bin"
 
 # ===========================================================
 # Here you can define any additional data structures that your program might need
 
-
-
+image_byte:    .zero 796
+m0_byte:    .zero 100352  
+.equ m0_byte_size 100352
+.equ input_byte_size 796
 
 # ===========================================================
 .text
 
 main:
     # Set up arguments for *classify* function
+    #temos de dar load aqui
     #
     # TODO
     #
@@ -71,7 +76,7 @@ main:
     # TODO
     #
 
-    #
+    jal classify
     j exit
     
 
@@ -397,8 +402,53 @@ exit_with_error_41:
 #
 # =======================================================
 
-classify:
+# t0 - endereço do input
+# a2 - tamanho do input
+# a0 - filename
+# t1 - elemento
+# t2 - contador
 
+classify:
+    addi sp,sp,-12
+    sw ra,0(sp)
+    #sw #guardar todos 
+    la a0, path_m0
+    la a1, m0_byte
+    li a2,m0_byte_size
+    jal read_file
+    
+    la a0,m0_byte
+    la a1,m0
+    la a2,m0_byte_size
+    li a3, 0 #12
+    li a4,1 #0
+    jal cast_array_to_int
+    
+    j exit
+
+    
+    
+    
+cast_array_to_int:
+     li t1,0 
+     add a0,a0,a3 
+     
+loop_cast:
+     add t3,t1,a0 
+     lb t0, 0(t3) 
+     
+     slli t4,t1,2
+     add t3,t4,a1 
+     
+     ble a4,x0,skip_process
+     addi t0,t0,-32
+skip_process:
+     sw t0,0(t3) 
+     
+     addi t1,t1,1 
+     blt t1,a2, loop_cast
+     
+     jr ra
 
 
 
