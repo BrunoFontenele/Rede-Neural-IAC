@@ -33,7 +33,6 @@
 
 #1000954
 
-input: .zero 3136
 
 h_m0: .word 128
 w_m0: .word 784
@@ -41,10 +40,11 @@ m0: .zero 401408                #h_m0 * w_m0 * 4 bytes
 
 h_m1: .word 10
 w_m1: .word 128
-m1: .zero 5120                  #h_m1 * w_m1 * 4 bytes
+m1: .zero 5120                 #h_m1 * w_m1 * 4 bytes
 
 h_input: .word 784
 w_input: .word 1             #h_input * w_input * 4 bytes
+input: .zero 3136
 
 h_h: .word 128 
 w_h: .word 1
@@ -64,17 +64,7 @@ path_m1: .string "C:\Users\beatr\Downloads\classifier-files\weight-matrices\m1.b
 input_byte_zero:    .zero 784
 m0_byte_zero:    .zero 401408
 m1_byte_zero:    .zero 5120 
-.equ m0_byte_size 100352
-.equ m1_byte_size 1280
-.equ input_byte_size 784
-.equ h_m0_i 128
-.equ w_m0_i 784
-.equ h_m1_i 10
-.equ w_m1_i 128
-.equ h_input_i 784
-.equ w_input_i 1 
-.equ h_h_i 128
-.equ w_h_i 1
+
  
 # ===========================================================
 .text
@@ -231,19 +221,6 @@ dotproduct:
     mv t3, x0
     slli t4, a3, 2 #convertendo em bytes
     mv t5, x0 #preparando contador
-    bne a3, x0, jump_loop_dotprod #se o step não for 0, iremos ver
-    #os elementos da coluna
-    normal_loop_dotprod:
-
-        lw t1, 0(a0)
-        lw t2, 0(t0)
-        mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        addi t0, t0, 4 #andando no vetor 2
-        bne t5, a2, normal_loop_dotprod
-        
      jump_loop_dotprod:
         lw t1, 0(a0)
         lw t2, 0(t0)
@@ -434,8 +411,8 @@ classify:
     #sw #guardar todos 
     la a0, path_m0
     la a1, m0_byte_zero
-    li t0, h_m0_i
-    li t1, w_m0_i
+    lw t0, h_m0
+    lw t1, w_m0
     mul a2, t0, t1
     jal read_file
     
@@ -447,8 +424,8 @@ classify:
     #lendo m1
     la a0, path_m1
     la a1, m1_byte_zero
-    li t0, h_m1_i
-    li t1, w_m1_i
+    lw t0, h_m1
+    lw t1, w_m1
     mul a2, t0, t1
     jal read_file
     
@@ -460,14 +437,14 @@ classify:
     #lendo input
     la a0, filename
     la a1, input_byte_zero
-    li t0, h_h_i
-    li t1, w_h_i
+    lw t0, h_input
+    lw t1, w_input
     mul a2, t0, t1
+    addi a2, a2, 12
     jal read_file
     
     #convertendo input
     la a0, input
-    addi a1, a1, 12
     li a3, 0 #0
     jal cast_array_to_int
     
@@ -475,33 +452,30 @@ classify:
     #passo 2 do algoritmo
     la a0, m0
     la a1, input
-    li a2, h_m0_i #numero de linhas
-    li a3, w_m0_i #numero de colunas
-    li a4, h_input_i
-    li a5, w_input_i
+    lw a2, h_m0
+    lw a3, w_m0
+    lw a4, h_input
+    lw a5, w_input
     la a6, h
     jal matmul
     
     #passo 3 do algoritmo
-    mv a0, a6 #preparando o endereço de h para o relu
-    li t0, h_m0_i
-    li t1, w_input_i
-    mul a1, t0, t1
+    la a0, h #preparando o endereço de h para o relu
+    lw a1, h_h
     jal relu
     
     #passo 4 do algoritmo
     la a0, m1
-    la a1, h
-    li a2, h_m1_i #numero de linhas
-    li a3, w_m1_i #numero de colunas
-    li a4, h_h_i
-    li a5, w_h_i
+    lw a2, h_m1
+    lw a3, w_m1
+    lw a4, h_h
+    lw a5, w_h
     la a6, o
     jal matmul
     
     #passo 5 do algoritmo
-    mv a0, a6
-    mul a1, a2, a5
+    la a0, o
+    lw a1, h_o
     jal argmax
     
     #passo 6 do algoritmo
@@ -524,8 +498,7 @@ classify:
 cast_array_to_int:
      li t1,0 #colocando contador a 0
      mv t0, a2
-     add a1, a1, t0
-     
+   
 loop_cast:
     #lendo o byte
      lb t3, 0(a1) #lemos o primeiro elemento do t3 e guardamos no t0
@@ -535,7 +508,7 @@ loop_cast:
      addi t3,t3,-32 #foi somado 32 anteriormente
 skip_process:
      sw t3,0(a0) #guardamos o t0 no t3 #guardando o valor corrigido
-     addi a1, a1, -1
+     addi a1, a1, 1
      addi a0, a0, 4
      
      addi t1,t1,1 #aumentar o contador
