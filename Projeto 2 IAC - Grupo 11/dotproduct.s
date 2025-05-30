@@ -33,38 +33,40 @@ exit:
 #   - If a2 < 1, exit with error code 38x
 # =======================================================
 dotproduct:
-    blez a2, exit_with_error38
+    # t0 - pointer to array 2
+    # t1 - array 1 element
+    # t2 - array 2 element
+    # t3 - sum
+    # t4 - step
+    # t5 - counter
+
+    blez a2, exit_with_error_38 #verifying error
+    
+    #Preparing registers
     mv t0, a1
     mv t1, x0
     mv t2, x0
     mv t3, x0
-    slli t4, a3, 2 #convertendo em bytes
-    mv t5, x0 #preparando contador
-    bne a3, x0, jump_loop #se o step não for 0, iremos ver
-    #os elementos da coluna
-    normal_loop:
-        beq t5, a2, end #chegamos no fim do vetor
+    slli t4, a3, 2 #converting step to bytes
+    mv t5, x0 
+    
+    jump_loop_dotprod:
         lw t1, 0(a0)
         lw t2, 0(t0)
         mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        addi t0, t0, 4 #andando no vetor 2
-        j normal_loop
-     jump_loop:
-        beq t5, a2, end #chegamos no fim do vetor
-        lw t1, 0(a0)
-        lw t2, 0(t0)
-        mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        add t0, t0, t4 #deslocando no vetor 2
-        j jump_loop
-    end:
+        add t3, t3, t1 #doing the sum
+        addi t5, t5, 1 #adding the counter
+        addi a0, a0, 4 #going to the next column in array 1
+        add t0, t0, t4 #going to the next line in array 2
+        bne t5, a2, jump_loop_dotprod #reached the end
+        
+    end_dotprod:
         mv a0, t3
         jr ra
+        
+    exit_with_error_38:
+        li a0, 38
+        j exit_with_error
         
 # Exits the program with an error 
 # Arguments: 
