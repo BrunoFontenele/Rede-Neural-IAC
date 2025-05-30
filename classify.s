@@ -31,6 +31,10 @@
 # ===========================================================
 #Main data structures. These definitions cannot be changed.
 
+#1000954
+
+input: .zero 3136
+
 h_m0: .word 128
 w_m0: .word 784
 m0: .zero 401408                #h_m0 * w_m0 * 4 bytes
@@ -40,8 +44,7 @@ w_m1: .word 128
 m1: .zero 5120                  #h_m1 * w_m1 * 4 bytes
 
 h_input: .word 784
-w_input: .word 1
-input: .zero 3136               #h_input * w_input * 4 bytes
+w_input: .word 1             #h_input * w_input * 4 bytes
 
 h_h: .word 128 
 w_h: .word 1
@@ -54,12 +57,12 @@ o: .zero 40                     #h_o * w_o * 4 bytes
 # ===========================================================
 # Here you can define any additional data structures that your program might need
 
-filename: .string "/home/bruno/Downloads/classifier-files/input-images/output.pgm"
-path_m0: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m0.bin"
-path_m1: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m1.bin"
+filename: .string "C:\Users\beatr\OneDrive\Ambiente de Trabalho\IAC\classifier-files\classifier-files\input-images\output0.pgm"
+path_m0: .string "C:\Users\beatr\Downloads\classifier-files\weight-matrices\m0.bin"
+path_m1: .string "C:\Users\beatr\Downloads\classifier-files\weight-matrices\m1.bin"
 
-input_byte_zero:    .zero 796
-m0_byte_zero:    .zero 401408 # m0w*m0h/4
+input_byte_zero:    .zero 784
+m0_byte_zero:    .zero 401408
 m1_byte_zero:    .zero 5120 
 .equ m0_byte_size 100352
 .equ m1_byte_size 1280
@@ -470,8 +473,8 @@ classify:
     
     
     #passo 2 do algoritmo
-    la a0, m0_byte_zero
-    la a1, input_byte_zero
+    la a0, m0
+    la a1, input
     li a2, h_m0_i #numero de linhas
     li a3, w_m0_i #numero de colunas
     li a4, h_input_i
@@ -481,13 +484,13 @@ classify:
     
     #passo 3 do algoritmo
     mv a0, a6 #preparando o endereço de h para o relu
-    li t0, w_m0_i
-    li t1, h_input_i
+    li t0, h_m0_i
+    li t1, w_input_i
     mul a1, t0, t1
     jal relu
     
     #passo 4 do algoritmo
-    la a0, m1_byte_zero
+    la a0, m1
     la a1, h
     li a2, h_m1_i #numero de linhas
     li a3, w_m1_i #numero de colunas
@@ -520,6 +523,8 @@ classify:
 #colocar isso como uma grande funcao e colocar cabeçalho
 cast_array_to_int:
      li t1,0 #colocando contador a 0
+     mv t0, a2
+     add a1, a1, t0
      
 loop_cast:
     #lendo o byte
@@ -530,11 +535,11 @@ loop_cast:
      addi t3,t3,-32 #foi somado 32 anteriormente
 skip_process:
      sw t3,0(a0) #guardamos o t0 no t3 #guardando o valor corrigido
-     addi a1, a1, 1
+     addi a1, a1, -1
      addi a0, a0, 4
      
      addi t1,t1,1 #aumentar o contador
-     blt t1,a2, loop_cast #se chegarmos no fim
+     bne t1,a2, loop_cast #se chegarmos no fim
      
      jr ra
 
