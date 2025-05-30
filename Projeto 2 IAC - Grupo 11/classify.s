@@ -9,16 +9,21 @@
 # ===========================================================
 # Requisitos do enunciado que *nao* estao corretamente implementados:
 # (indicar um por linha, ou responder "nenhum")
-# - Nenhum
+# - Não conseguimos implementar corretamente a função Classify. 
+# - Enquanto testávamos, conseguimos correr e obter resultados, por mais que
+# - não estivessem corretos. No entanto, após algumas das últimas alterações, 
+# - o código acaba enfrentando alguns erros com algumas funções, já que anteriormente
+# - foi utilizado .equ com os valores a serem utilizados.
 # ===========================================================
 # Top-5 das otimizacoes que a vossa solucao incorpora:
 # (maximo 140 caracteres por cada otimizacao)
 #
-# 1. Nao usar o stack no matmul
+# 1. Pensamos em utilizar o stack como segundo vetor, mas acreditamos
+# que percorrer utilizando os steps seja mais eficiente.
 #
-# 2. usar xor ao colocar uma variavel a 0
+# 2. 
 #
-# 3.
+# 3. 
 #
 # 4.
 #
@@ -37,13 +42,13 @@ m0: .zero 401408                #h_m0 * w_m0 * 4 bytes
 
 h_m1: .word 10
 w_m1: .word 128
-m1: .zero 5120                  #h_m1 * w_m1 * 4 bytes
+m1: .zero 5120                 #h_m1 * w_m1 * 4 bytes
 
 h_input: .word 784
-w_input: .word 1
-input: .zero 3136               #h_input * w_input * 4 bytes
+w_input: .word 1             #h_input * w_input * 4 bytes
+input: .zero 3136
 
-h_h: .word 128
+h_h: .word 128 
 w_h: .word 1
 h: .zero 512                    #h_h * w_h * 4 bytes
 
@@ -51,32 +56,25 @@ h_o: .word 10
 w_o: .word 1
 o: .zero 40                     #h_o * w_o * 4 bytes
 
-filename: .string "/home/bruno/Downloads/classifier-files/input-images/output0.pgm"
-path_m0: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m0.bin"
-
 # ===========================================================
 # Here you can define any additional data structures that your program might need
 
-input_byte_zero:    .zero 796 # 28*28+12
-m0_byte_zero:    .zero 100352 # m0w*m0h/4
-m1_byte_zero:    .zero 1280 
-.equ m0_byte_size 100352
-.equ m1_byte_size 1280
-.equ input_byte_size 796
+filename: .string "/home/bruno/Downloads/classifier-files/input-images/output0.pgm"
+path_m0: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m0.bin"
+path_m1: .string "/home/bruno/Downloads/classifier-files/weight-matrices/m1.bin"
 
+input_byte_zero:    .zero 784
+m0_received:    .zero 401408
+m1_received:    .zero 5120 
+
+ 
 # ===========================================================
 .text
 
 main:
-    # Set up arguments for *classify* function
-    #temos de dar load aqui
-    #
-    # TODO
-    #
-
-    # Call *classify* function
-    # TODO
-    #
+    la a0, path_m0
+    la a1, path_m1
+    la a2, filename
 
     jal classify
     j exit
@@ -140,7 +138,8 @@ exit_with_error_36:
 
 
 # =================================================================
-# FUNCTION: Given an int array, return the index of the largest
+# FUNCTION: Argmax
+#   Given an int array, return the index of the largest
 #   element. If there are multiple, return the one
 #   with the smallest index.
 # Arguments:
@@ -194,56 +193,47 @@ exit_with_error_argmax:
 #   a0 (int*) - Pointer to the start of arr0
 #   a1 (int*) - Pointer to the start of arr1
 #   a2 (int)  - Number of elements to use   
-#   a3 (int)  - Step of the second vector (optional)
+#   a3 (int)  - Step of the second vector (extra)
 # Returns:
 #   a0 (int)  - The dot product of arr0 and arr1
 # Exceptions:
 #   - If a2 < 1, exit with error code 38
 # =======================================================
 dotproduct:
-    # t0 - ponteiro matriz 2
-    # t1 - elemento da matriz 1
-    # t2 - elemento da matriz 2
-    # t3 - soma
+    # t0 - pointer to array 2
+    # t1 - array 1 element
+    # t2 - array 2 element
+    # t3 - sum
     # t4 - step
-    # t5 - contador
+    # t5 - counter
 
-    blez a2, exit_with_error_38
+    blez a2, exit_with_error_38 #verifying error
+    
+    #Preparing registers
     mv t0, a1
     mv t1, x0
     mv t2, x0
     mv t3, x0
-    slli t4, a3, 2 #convertendo em bytes
-    mv t5, x0 #preparando contador
-    bne a3, x0, jump_loop_dotprod #se o step não for 0, iremos ver
-    #os elementos da coluna
-    normal_loop_dotprod:
-        beq t5, a2, end_dotprod #chegamos no fim do vetor
+    slli t4, a3, 2 #converting step to bytes
+    mv t5, x0 
+    
+    jump_loop_dotprod:
         lw t1, 0(a0)
         lw t2, 0(t0)
         mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        addi t0, t0, 4 #andando no vetor 2
-        j normal_loop_dotprod
-     jump_loop_dotprod:
-        beq t5, a2, end_dotprod #chegamos no fim do vetor
-        lw t1, 0(a0)
-        lw t2, 0(t0)
-        mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        add t0, t0, t4 #deslocando no vetor 2
-        j jump_loop_dotprod
+        add t3, t3, t1 #doing the sum
+        addi t5, t5, 1 #adding the counter
+        addi a0, a0, 4 #going to the next column in array 1
+        add t0, t0, t4 #going to the next line in array 2
+        bne t5, a2, jump_loop_dotprod #reached the end
+        
     end_dotprod:
         mv a0, t3
         jr ra
         
-exit_with_error_38:
-  li a0, 38
-  j exit_with_error
+    exit_with_error_38:
+        li a0, 38
+        j exit_with_error
     
 
 # =======================================================
@@ -271,12 +261,13 @@ exit_with_error_38:
 matmul:
   
 
-# s0 - ponteiro para matriz 1
-# s1 - ponteiro para matriz 2 (se move)
-# s2 - ponteiro para matriz 2 (estatico)
-# s3 - contador interno
-# s4 - contador externo
-# s5 - deslocamento (step)
+# s0 - Pointer to Matrix 1
+# s1 - Pointer to Matrix 2 
+# s2 - Pointer to Static Matrix 2
+# s3 - Internal counter
+# s4 - External counter
+# s5 - step
+# s6 - number of rows in matrix 1
 
     blez a2, exit_with_error_39
     blez a3, exit_with_error_39
@@ -284,52 +275,51 @@ matmul:
     blez a5, exit_with_error_39
     bne a3, a4, exit_with_error_40
     
-    addi sp, sp, -8
+    #Preparing registers
+    addi sp, sp, -4
     sw ra, 0(sp)
-    sw a2, 4(sp)
-    mv s0, a0 #guardando matriz 1
-    mv s1, a1 #guardando matriz 2
-    mv s2, a1 #guardando matriz 2 (estatico)
-    mv s3, x0 #preparando contador interno
-    mv s4, x0 #preparando contador externo
-    slli s5, a3, 2 #preparando step
+    mv s0, a0 
+    mv s1, a1 
+    mv s2, a1 
+    mv s3, x0 
+    mv s4, x0 
+    slli s5, a3, 2 #converting step to bytes
+    mv s6, a2
 
     
     loop_mat:
-        mv a0, s0 #reiniciando a0
-        mv a1, s1 #reiniciando a1
-        add a3, a5, x0 #guardando step do dotproduct
-        add a2, a4, x0
+        mv a0, s0 #restarting matrix 1
+        mv a1, s1 #restarting matrix 2
+        mv a3, a5 #setting step for dotprod
+        mv a2, a4 #setting number of elements for dotprod
         jal dotproduct
-        sw a0, 0(a6) #guardando resultado na matriz final
-        addi s3, s3, 1 #aumentando contador interno
-        addi s1, s1, 4 #saltando para a proxima coluna da segunda
-        beq s3, a5, loop_end #atingimos o fim da segunda matriz
-        addi a6, a6, 4 #indo para o proximo elemento do resultado
-        j loop_mat
+        sw a0, 0(a6) #storing answer in the final matrix
+        addi s3, s3, 1 #adding internal counter
+        addi s1, s1, 4 #going to the next column of matrix 2
+        beq s3, a5, loop_end #ending of matrix 2 was reached
+        addi a6, a6, 4 #going to the next element of final matrix
         
     loop_end:
-        mv s3, x0 #reiniciando contador interno
-        mv s1, s2 #reiniciando segunda matriz
-        add s0, s0, s5 #indo para a proxima linha da matriz 1
-        addi s4, s4, 1 #aumentando contador externo
-        lw a2, 4(sp)
-        beq s4, a2, end_mat #chegamos na ultima linha da primeira matriz
-        addi a6, a6, 4 #indo para o proximo elemento do resultado
+        mv s3, x0 #restarting internal counter
+        mv s1, s2 #restarting matrix 2
+        add s0, s0, s5 #going to the next column of matrix 1
+        addi s4, s4, 1 #adding external counter
+        beq s4, s6, end_mat #reached the last line of matrix 1
+        addi a6, a6, 4 #going to the next element of final matrix
         j loop_mat
         
     end_mat:
         lw ra, 0(sp)
-        addi sp, sp, 8
+        addi sp, sp, 4
         jr ra
         
-exit_with_error_39:
-  li a0, 39
-  j exit_with_error
+    exit_with_error_39:
+        li a0, 39
+        j exit_with_error
 
-exit_with_error_40:
-  li a0, 40
-  j exit_with_error
+    exit_with_error_40:
+        li a0, 40
+        j exit_with_error
 
 
 ######################################################################
@@ -348,46 +338,86 @@ exit_with_error_40:
 read_file:
     
     li t0, 1
-    blt a2, t0, exit_with_error_42    # Número de bytes passados menor que 1
+    blt a2, t0, exit_with_error_42 # Verifying error
 
-    mv t1, a1    # Guarda buffer pointer
-    mv t2, a2    # Guarda lenght
+    mv t1, a1    # Saving buffer pointer
+    mv t2, a2    # Saving lenght
 
     li a1 0       # Flag read only
-    li a7 1024    # Open (muda a0 para file descriptor)
+    li a7 1024    # Open (changes a0 to file descriptor)
     ecall
 
-    blt a0, zero, exit_with_error_41    # Open devolve erro se file descriptor < 0
-    mv t0, a0    # Guarda file descriptor
-    mv a1, t1    # Repor ponteiro buffer
-    mv a2, t2    # Repor lenght
+    blt a0, zero, exit_with_error_41    # if file descriptor < 0
+    mv t0, a0    # Saving file descriptor
+    mv a1, t1    # Reset buffer pointer
+    mv a2, t2    # Reset lenght
 
-    li a7, 63    # Read ficheiro (muda a0 para numero de bytes)
+    li a7, 63    # Read file (changes a0 to number of bytes)
     ecall
 
-    blt a0, zero, exit_with_error_41    # Read devolve erro se byte lidos < 0
+    blt a0, zero, exit_with_error_41    # Verifying error
 
-    mv t3, a0    # Salva número de bytes lidos
-    mv a0, t0    # Move file descriptor de novo para a0
+    mv t3, a0    # Saving number of read bytes
+    mv a0, t0    # Changing file descriptor to a0
 
-    li a7, 57    # Close ficheiro
+    li a7, 57    # Close file
     ecall
 
-    mv a0, t3    # Coloca número de bytes lidos em a0
+    mv a0, t3    # Putting number of read bytes in a0
     jr ra
 
 
-exit_with_error_42:
-    li a0, 42                    # Erro 42
-    j exit_with_error                      # Terminate programm
+    exit_with_error_42:
+        li a0, 42             
+        j exit_with_error               
 
-exit_with_error_41:
-    li a0, 41                    # Erro 41
-    j exit_with_error          # Terminate programm
+    exit_with_error_41:
+        li a0, 41        
+        j exit_with_error    
     
-    jr ra                    # Return to the caller
+    jr ra            
 
 
+######################################################################
+# Function: array_converter
+# Input:
+#   a0: pointer to the already read vector
+#   a1: pointer to destination vector
+#   a2: number of elements to convert
+#   a3: flag (0 if image, 1 if matrix)
+# Output:
+#   a1: pointer to converted vector
+######################################################################
+
+#a0 - endereço de chegada
+#a1 - endereço de entrada
+#a2 - quantidade 
+#a3 - flag
+#t1 - contador
+#t2 - step 
+#t3 - elemento lido
+
+array_converter:
+     li t1,0 #colocando contador a 0
+     mv t0, a2
+   
+loop_conv:
+    #lendo o byte
+     lb t3, 0(a1) #lemos o primeiro elemento do t3 e guardamos no t0
+     
+     #flag para imagem
+     beq a3,x0,end_loop_conv #verificamos se a4 é menor que 0
+     addi t3,t3,-32 #foi somado 32 anteriormente
+     
+end_loop_conv:
+     sw t3,0(a0) #guardamos o t0 no t3 #guardando o valor corrigido
+     addi a1, a1, 1
+     addi a0, a0, 4
+     
+     addi t1,t1,1 #aumentar o contador
+     bne t1,a2, loop_conv #se chegarmos no fim
+     
+     jr ra
 
 
 # =======================================================
@@ -411,74 +441,87 @@ exit_with_error_41:
 # t2 - contador
 
 classify:
-    addi sp,sp,-12
+    #passo 1 do algoritmo
+    #lendo m0
+    addi sp,sp,-4
     sw ra,0(sp)
     #sw #guardar todos 
     la a0, path_m0
-    la a1, m0_byte_zero
-    li a2, m0_byte_size
+    la a1, m0_received
+    lw t0, h_m0
+    lw t1, w_m0
+    mul a2, t0, t1
     jal read_file
     
-    la a0,m0_byte_zero
-    la a1,m0
-    la a2,m0_byte_size
-    li a3, 0 #12
-    li a4, 1 #0
-    jal cast_array_to_int
+    #convertendo m0
+    la a0, m0
+    li a3, 1 #0
+    jal array_converter
     
+    #lendo m1
     la a0, path_m1
-    la a1, m1_byte_zero
-    li a2, m1_byte_size
+    la a1, m1_received
+    lw t0, h_m1
+    lw t1, w_m1
+    mul a2, t0, t1
     jal read_file
-    la a0,m1_byte_zero
-    la a1,m1
-    la a2,m1_byte_size
-    li a3, 0 #12
-    li a4, 1 #0
-    jal cast_array_to_int
     
-    la a0,input_byte_zero
-    la a1,input
-    la a2,input_byte_size
-    li a3, 1
-    li a4, 0
-    jal cast_array_to_int #MUDAR NOME DA FUNCAO POR FAVOR. IMPLORO
+    #convertendo m1
+    la a0, m1
+    li a3, 1 #0
+    jal array_converter
     
-    j exit
-
-#a0 - memoria do m0
-#a1 - address do m0
-#a2 - limite final
-#a3 - 0 (muda entre as matrizes e a imagem)
-#a4 - 1 (muda entre entre)
-#t1 - contador
-#t3 - 
-#t4 - step
-cast_array_to_int:
-     li t1,0 #t1 = 0
-     mv a3, a0 # colocamos a3 
-     
-loop_cast:
-    #lendo o byte
-     add t3,t1,a0 #colocamos no t3 o endereço do m0_zero + t1
-     lb t0, 0(t3) #lemos o primeiro elemento do t3 e guardamos no t0
-     
-     #step
-     slli t4,t1,2 #multiplicar t1 por 4 e guardar no t4
-     add t3,t4,a1 #somar t4 ao endereço do m0 e guardar no t3
-     
-     #se for matriz continua, se nao salta
-     ble a4,x0,skip_process #verificamos se a4 é menor que 0
-     addi t0,t0,-32 #foi somado 32 anteriormente
-skip_process:
-     sw t0,0(t3) #guardamos o t0 no t3 #guardando o valor corrigido
-     
-     addi t1,t1,1 #aumentar o contador
-     blt t1,a2, loop_cast #se chegarmos no fim
-     
-     jr ra
-
-
+    #lendo input
+    la a0, filename
+    la a1, input_byte_zero
+    lw t0, h_input
+    lw t1, w_input
+    mul a2, t0, t1
+    addi a2, a2, 12 #saltando cabeçalho
+    jal read_file
+    
+    #convertendo input
+    la a0, input
+    li a3, 0 #0
+    jal array_converter
+    
+    
+    #passo 2 do algoritmo
+    la a0, m0
+    la a1, input
+    lw a2, h_m0
+    lw a3, w_m0
+    lw a4, h_input
+    lw a5, w_input
+    la a6, h
+    jal matmul
+    
+    #passo 3 do algoritmo
+    la a0, h #preparando o endereço de h para o relu
+    lw a1, h_h
+    jal relu
+    
+    #passo 4 do algoritmo
+    la a0, m1
+    lw a2, h_m1
+    lw a3, w_m1
+    lw a4, h_h
+    lw a5, w_h
+    la a6, o
+    jal matmul
+    
+    #passo 5 do algoritmo
+    la a0, o
+    lw a1, h_o
+    jal argmax
+    
+    #passo 6 do algoritmo
+    li a7, 1
+    ecall
+    
+    lw ra, 0(sp)
+    addi sp, sp, 4
+    jr ra
 
 
 
@@ -499,5 +542,3 @@ exit:
 exit_with_error:
   li a7, 93            # Exit system call
   ecall                # Terminate program
-
-
