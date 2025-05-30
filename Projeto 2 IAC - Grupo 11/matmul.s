@@ -26,56 +26,41 @@ exit:
   li a7, 10              # Exit syscall code
   ecall                  # Terminate the program
 
-
-#argumento opcional: a3 - representa o deslocamento da
-#segunda função (step).
-
-# t0 - ponteiro matriz 2
-# t1 - elemento da matriz 1
-# t2 - elemento da matriz 2
-# t3 - soma
-# t4 - step
-# t5 - contador
-
 dotproduct:
-    blez a2, exit_with_error_38
+    # t0 - pointer to array 2
+    # t1 - array 1 element
+    # t2 - array 2 element
+    # t3 - sum
+    # t4 - step
+    # t5 - counter
+
+    blez a2, exit_with_error_38 #verifying error
+    
+    #Preparing registers
     mv t0, a1
     mv t1, x0
     mv t2, x0
     mv t3, x0
-    slli t4, a3, 2 #convertendo em bytes
-    mv t5, x0 #preparando contador
-    bne a3, x0, jump_loop #se o step não for 0, iremos ver
-    #os elementos da coluna
-    normal_loop:
-        beq t5, a2, end #chegamos no fim do vetor
+    slli t4, a3, 2 #converting step to bytes
+    mv t5, x0 
+    
+    jump_loop_dotprod:
         lw t1, 0(a0)
         lw t2, 0(t0)
         mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        addi t0, t0, 4 #andando no vetor 2
-        j normal_loop
-     jump_loop:
-        beq t5, a2, end #chegamos no fim do vetor
-        lw t1, 0(a0)
-        lw t2, 0(t0)
-        mul t1, t1, t2
-        add t3, t3, t1
-        addi t5, t5, 1 #aumentando contador
-        addi a0, a0, 4 #andando no vetor 1
-        add t0, t0, t4 #deslocando no vetor 2
-        j jump_loop
-    end:
+        add t3, t3, t1 #doing the sum
+        addi t5, t5, 1 #adding the counter
+        addi a0, a0, 4 #going to the next column in array 1
+        add t0, t0, t4 #going to the next line in array 2
+        bne t5, a2, jump_loop_dotprod #reached the end
+        
+    end_dotprod:
         mv a0, t3
         jr ra
         
     exit_with_error_38:
-      li a0, 38
-      li a7, 93            # Exit system call
-      ecall                # Terminate program
-         
+        li a0, 38
+        j exit_with_error
 
 # =======================================================
 # FUNCTION: Matrix Multiplication of 2 integer matrices
@@ -102,12 +87,13 @@ dotproduct:
 matmul:
     
 
-# s0 - ponteiro para matriz 1
-# s1 - ponteiro para matriz 2 (se move)
-# s2 - ponteiro para matriz 2 (estatico)
-# s3 - contador interno
-# s4 - contador externo
-# s5 - deslocamento (step)
+# s0 - Pointer to Matrix 1
+# s1 - Pointer to Matrix 2 
+# s2 - Pointer to Static Matrix 2
+# s3 - Internal counter
+# s4 - External counter
+# s5 - step
+# s6 - number of rows in matrix 1
 
     blez a2, exit_with_error_39
     blez a3, exit_with_error_39
@@ -115,55 +101,48 @@ matmul:
     blez a5, exit_with_error_39
     bne a3, a4, exit_with_error_40
     
-    addi sp, sp, -8
+    #Preparing registers
+    addi sp, sp, -4
     sw ra, 0(sp)
-    sw a2, 4(sp)
-    mv s0, a0 #guardando matriz 1
-    mv s1, a1 #guardando matriz 2
-    mv s2, a1 #guardando matriz 2 (estatico)
-    mv s3, x0 #preparando contador interno
-    mv s4, x0 #preparando contador externo
-    slli s5, a3, 2 #preparando step
+    mv s0, a0 
+    mv s1, a1 
+    mv s2, a1 
+    mv s3, x0 
+    mv s4, x0 
+    slli s5, a3, 2 #converting step to bytes
+    mv s6, a2
 
     
     loop_mat:
-        mv a0, s0 #reiniciando a0
-        mv a1, s1 #reiniciando a1
-        add a3, a5, x0 #guardando step do dotproduct
-        add a2, a4, x0
+        mv a0, s0 #restarting matrix 1
+        mv a1, s1 #restarting matrix 2
+        mv a3, a5 #setting step for dotprod
+        mv a2, a4 #setting number of elements for dotprod
         jal dotproduct
-        sw a0, 0(a6) #guardando resultado na matriz final
-        addi s3, s3, 1 #aumentando contador interno
-        addi s1, s1, 4 #saltando para a proxima coluna da segunda
-        beq s3, a5, loop_end #atingimos o fim da segunda matriz
-        addi a6, a6, 4 #indo para o proximo elemento do resultado
-        j loop_mat
+        sw a0, 0(a6) #storing answer in the final matrix
+        addi s3, s3, 1 #adding internal counter
+        addi s1, s1, 4 #going to the next column of matrix 2
+        beq s3, a5, loop_end #ending of matrix 2 was reached
+        addi a6, a6, 4 #going to the next element of final matrix
         
     loop_end:
-        mv s3, x0 #reiniciando contador interno
-        mv s1, s2 #reiniciando segunda matriz
-        add s0, s0, s5 #indo para a proxima linha da matriz 1
-        addi s4, s4, 1 #aumentando contador externo
-        lw a2, 4(sp)
-        beq s4, a2, end_mat #chegamos na ultima linha da primeira matriz
-        addi a6, a6, 4 #indo para o proximo elemento do resultado
+        mv s3, x0 #restarting internal counter
+        mv s1, s2 #restarting matrix 2
+        add s0, s0, s5 #going to the next column of matrix 1
+        addi s4, s4, 1 #adding external counter
+        beq s4, s6, end_mat #reached the last line of matrix 1
+        addi a6, a6, 4 #going to the next element of final matrix
         j loop_mat
         
     end_mat:
         lw ra, 0(sp)
-        addi sp, sp, 8
+        addi sp, sp, 4
         jr ra
         
-# Exits the program with an error 
-# Arguments: 
-# a0 (int) is the error code 
-# You need to load a0 the error to a0 before to jump here
-exit_with_error_39:
-  li a0, 39
-  li a7, 93            # Exit system call
-  ecall                # Terminate program
+    exit_with_error_39:
+        li a0, 39
+        j exit_with_error
 
-exit_with_error_40:
-  li a0, 40
-  li a7, 93            # Exit system call
-  ecall                # Terminate program
+    exit_with_error_40:
+        li a0, 40
+        j exit_with_error
