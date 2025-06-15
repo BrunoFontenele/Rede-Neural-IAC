@@ -31,12 +31,13 @@ $
 #
 # 1. Formato único de instruções simplifica a decodificação e reduz a complexidade do circuito.
 #
-# 2. ALU modular permite facilmente adicionar novas instruções aritméticas no futuro.
-# A ALU foi projetada de forma modular, com cada operação implementada como um bloco separado,
-# selecionado por um multiplexador. Isso facilita a adição de novas instruções no futuro.
+# 2. A ALU foi criada de forma modular,ou seja,todas operações estão divididas em blocos separados que
+# posteriormente serão selecionados por um multiplexor.Isso ajuda no  caso se quisermos adicionar
+# outras intruções futuramente. 
 #
-# 3. As instruções abs e relu foram implementadas com uso inteligente de multiplexadores,
-# evitando circuitos redundantes. Em vez de criar lógica dedicada complexa, usa-se um comparador
-# simples para verificar o sinal de R1 e um mux seleciona o valor correto.
+# 3. As instruções abs e relu foram implementadas com uso de uns multiplexers á parte,
+# evitando circuitos redundantes. Em vez de algo complexo,usamos um comparador
+# simples para verificar o sinal de R1 e um mux que seleciona o valor correto.
 #
 # ===========================================================
+
