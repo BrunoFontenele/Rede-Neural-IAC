@@ -7,6 +7,13 @@
 # 3. ist1113976- Bruno Fontenele
 $
 # ===========================================================
+# AVISO
+#
+# Para o programa funcionar corretamente, é necessário alterar alguns valores no programa já que estes 
+# são reiniciados automaticamente quando o programa é fechado. Portanto, para o correto funcionamento,
+# coloque os valores indicados pelos comentários a vermelhos nos locais indicados.
+#
+# ===========================================================
 # Descrição da ISA Implementada
 #
 # == Formato das Instruções ==
@@ -26,7 +33,6 @@ $
 # - Control Unit: Analisa o Opcode, buscando um bit extra se necessário e enviando a operação para a ALU.
 #
 # == Sinais de Controlo ==
-# Explicar o que cada sinal ativa/desativa/seleciona e como sao gerados.
 # - Bit a 1 no PC Counter: Ativa WE do Registro e envia C in para o somador, realizando a soma.
 # - Clock: Executa os ciclos e ativa o WE do Registro R1.
 # - Distribuidor: Separa os bits da instrução vinda da ROM entre Opcode e Imediato.
