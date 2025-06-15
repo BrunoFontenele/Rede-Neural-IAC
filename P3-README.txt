@@ -1,13 +1,13 @@
 # ===========================================================
-# Identificacao do grupo: T
+# Identificacao do grupo: 11
 #
 # Membros [istID, primeiro + ultimo nome]
 # 1. ist1114584- Beatriz Alves
 # 2. ist1114263- Beatriz Medvedyuk
-# 3. ist1114134- Bruno Fontenele
+# 3. ist1113976- Bruno Fontenele
 $
 # ===========================================================
-# Descricao da ISA Implementada
+# Descrição da ISA Implementada
 #
 # == Formato das Instrucoes ==
 # Indicar a divisao dos campos da instrucao
