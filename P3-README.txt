@@ -12,7 +12,7 @@ $
 # == Formato das Instruções ==
 # - 2 bits para o opcode das instruções que necessitam de imediato (li, addi e subi), sendo esse
 # o número mínimo possível para o opcode nessas situações.
-# - 4 bits para o opcode das intruções que não necessiam de imediato (abs e relu). Foram utilizados
+# - 4 bits para o opcode das intruções que não necessitam de imediato (abs e relu). Foram utilizados
 # 4 por conta da comparação dos multiplexers dos casos em que o opcode é 11X, se fosse 1 bit extra
 # acabaria existindo conflito com os opcodes de 2 bits.
 #
