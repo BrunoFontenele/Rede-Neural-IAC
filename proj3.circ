@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project source="3.8.0" version="1.0">
-  This file is intended to be loaded by Logisim-evolution v3.8.0(https://github.com/logisim-evolution/).
+<project source="3.9.0" version="1.0">
+  This file is intended to be loaded by Logisim-evolution v3.9.0(https://github.com/logisim-evolution/).
 
   <lib desc="#Wiring" name="0">
     <tool name="Pin">
@@ -301,6 +301,94 @@
       <a name="appearance" val="logisim_evolution"/>
     </comp>
     <comp lib="5" loc="(260,410)" name="Button"/>
+    <comp lib="8" loc="(1000,1003)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="00"/>
+    </comp>
+    <comp lib="8" loc="(1024,468)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="00000000"/>
+    </comp>
+    <comp lib="8" loc="(1031,587)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="00000000"/>
+    </comp>
+    <comp lib="8" loc="(1130,994)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="01"/>
+    </comp>
+    <comp lib="8" loc="(1139,1076)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="10"/>
+    </comp>
+    <comp lib="8" loc="(1220,977)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="3"/>
+    </comp>
+    <comp lib="8" loc="(1229,1086)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="4"/>
+    </comp>
+    <comp lib="8" loc="(1238,1040)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="0"/>
+    </comp>
+    <comp lib="8" loc="(1240,936)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="0"/>
+    </comp>
+    <comp lib="8" loc="(149,406)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="1"/>
+    </comp>
+    <comp lib="8" loc="(835,1068)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="11"/>
+    </comp>
+    <comp lib="8" loc="(851,695)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="00"/>
+    </comp>
+    <comp lib="8" loc="(858,917)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="10"/>
+    </comp>
+    <comp lib="8" loc="(862,804)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="01"/>
+    </comp>
+    <comp lib="8" loc="(909,505)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="00000000"/>
+    </comp>
+    <comp lib="8" loc="(910,645)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="0"/>
+    </comp>
+    <comp lib="8" loc="(921,677)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="5"/>
+    </comp>
+    <comp lib="8" loc="(941,768)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="0"/>
+    </comp>
+    <comp lib="8" loc="(941,799)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="1"/>
+    </comp>
+    <comp lib="8" loc="(941,889)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="0"/>
+    </comp>
+    <comp lib="8" loc="(943,916)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="2"/>
+    </comp>
+    <comp lib="8" loc="(961,396)" name="Text">
+      <a name="color" val="#880808"/>
+      <a name="text" val="00000001"/>
+    </comp>
     <wire from="(100,360)" to="(100,470)"/>
     <wire from="(100,360)" to="(140,360)"/>
     <wire from="(100,470)" to="(290,470)"/>
